@@ -173,3 +173,11 @@ The pickup geometry was aligned to the deeper cover: a desktop opening targeted 
 - Local desktop review with eight books in the first row measured seven gaps of 7px and zero unused space at either end. Spines measured 106px closed and 79px during the last book's preview; the cover stayed inside the row with no horizontal overflow or capacity change.
 - At 320 × 844, the last cover in a two-book row remained within its compartment with no document overflow. Spine typography was capped at 23px. Reset the viewport, opened a book through its full cover transition, and confirmed the reader appeared. No browser warnings or errors were captured.
 - TypeScript passed. Model/storage behavior is unchanged; model tests were not rerun for this presentation change. Physical touch, exhaustive motion timing, and older browsers without registered custom-property animation remain outside this verification.
+
+## Lighter bookshelf hover — 15 November 2026
+
+- Removed the animated inherited spine-width property and flex-basis transitions. Hover keeps closed spine widths, slots, text sizes, and row capacity fixed. Only the selected volume and front-cover transforms animate, over 500ms; the cover floats in front of neighboring books and its horizontal offset is clamped to the compartment.
+- Removed the growing invisible hit area. The actual active cover accepts pointer clicks through its existing button. An 80ms pointer-exit grace period is cancelled on entry, input-mode changes, and unmount. Pointer movement only changes mode state when switching input types.
+- In the local desktop browser, all eight first-row book rectangles and text sizes matched exactly before and after the final book's preview. Row and slot transition durations were 0s, and the volume transition property was transform. The last cover stayed inside the row with no document overflow.
+- At 320 × 844, the second cover stayed within the two-book row with no overflow. Restored the normal viewport, clicked the actual revealed cover, and confirmed its chronological reader opened. No browser warnings or errors were captured. TypeScript passed.
+- No model or storage changes. Verification checked preview geometry and click behavior; it did not collect frame-rate benchmarks or an exhaustive physical mouse/touch sweep. Existing reduced-motion rules suppress the remaining transforms.

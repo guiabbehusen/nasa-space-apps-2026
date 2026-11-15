@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -98,8 +99,31 @@ export default function Bookshelf({
   const [previewMode, setPreviewMode] = useState<"pointer" | "keyboard">(
     "pointer",
   );
+  const previewModeRef = useRef<"pointer" | "keyboard">("pointer");
+  const hoverLeaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearHoverLeave = () => {
+    if (hoverLeaveTimer.current !== null) {
+      clearTimeout(hoverLeaveTimer.current);
+      hoverLeaveTimer.current = null;
+    }
+  };
+  const changePreviewMode = (mode: "pointer" | "keyboard") => {
+    if (previewModeRef.current !== mode) {
+      previewModeRef.current = mode;
+      if (mode === "keyboard") setHoverId(null);
+      setPreviewMode(mode);
+    }
+  };
   const activeId =
     previewId ?? (previewMode === "keyboard" ? focusId : hoverId);
+
+  useEffect(
+    () => () => {
+      if (hoverLeaveTimer.current !== null)
+        clearTimeout(hoverLeaveTimer.current);
+    },
+    [],
+  );
 
   useLayoutEffect(() => {
     const surface = rowsRef.current;
@@ -114,8 +138,8 @@ export default function Bookshelf({
       const rowWidth = row.clientWidth;
       const coverWidth = cover.offsetWidth;
       const gap = parseFloat(rowStyle.columnGap) || 0;
-      // Capacity depends on an immutable sizing probe. The actual spines grow
-      // to pack a row and narrow for previews without regrouping its books.
+      // Capacity depends on an immutable sizing probe. Hover only transforms
+      // the cover; the spine widths and their pointer targets stay fixed.
       const reserve = Math.max(
         0,
         Math.ceil(coverWidth - baseSpineWidth * 0.55),
@@ -155,16 +179,22 @@ export default function Bookshelf({
     <section
       className={`rustic-bookshelf${geometry === null ? " shelf-measuring" : ""}`}
       aria-labelledby="bookshelf-title"
-      onKeyDownCapture={() => setPreviewMode("keyboard")}
+      onKeyDownCapture={() => {
+        clearHoverLeave();
+        changePreviewMode("keyboard");
+      }}
       onPointerMove={(event) => {
-        if (event.pointerType === "mouse") setPreviewMode("pointer");
+        if (event.pointerType === "mouse") changePreviewMode("pointer");
       }}
       onPointerDown={(event) => {
         if (
           !(event.target instanceof Element) ||
           !event.target.closest(".shelf-book-trigger")
-        )
+        ) {
+          clearHoverLeave();
           setPreviewId(null);
+          setHoverId(null);
+        }
       }}
     >
       <div className="shelf-cabinet">
@@ -185,7 +215,6 @@ export default function Bookshelf({
         <div className="shelf-rows" ref={rowsRef}>
           <span className="shelf-sizing-probe" aria-hidden="true" />
           {rows.map((row, rowIndex) => {
-            const expanded = row.some((entry) => entry.album.id === activeId);
             const spineWidth = geometry
               ? row.length === 1
                 ? geometry.baseSpineWidth * 0.85
@@ -193,10 +222,8 @@ export default function Bookshelf({
                     1,
                     Math.min(
                       132,
-                      ((geometry.rowWidth -
-                        geometry.gap * (row.length - 1) -
-                        (expanded ? geometry.coverWidth : 0)) /
-                        (row.length - (expanded ? 0.55 : 0))) *
+                      ((geometry.rowWidth - geometry.gap * (row.length - 1)) /
+                        row.length) *
                         0.85,
                     ),
                   )
@@ -215,7 +242,7 @@ export default function Bookshelf({
                         } as CSSProperties)
                   }
                 >
-                  {row.map((entry) => {
+                  {row.map((entry, bookIndex) => {
                     const {
                       album,
                       companionName,
@@ -225,6 +252,15 @@ export default function Bookshelf({
                       hasDraft,
                     } = entry;
                     const preview = previewId === album.id;
+                    const previewShift =
+                      geometry && spineWidth !== null
+                        ? Math.min(
+                            0,
+                            geometry.rowWidth -
+                              bookIndex * (spineWidth + geometry.gap) -
+                              (geometry.coverWidth + spineWidth * 0.45 + 8),
+                          )
+                        : 0;
                     return (
                       <div
                         className="shelf-book-slot"
@@ -234,10 +270,7 @@ export default function Bookshelf({
                           spineWidth === null
                             ? undefined
                             : {
-                                flexBasis:
-                                  activeId === album.id
-                                    ? geometry!.coverWidth + spineWidth * 0.45
-                                    : spineWidth,
+                                flexBasis: spineWidth,
                               }
                         }
                       >
@@ -246,26 +279,44 @@ export default function Bookshelf({
                           className={`shelf-book-trigger shelf-accent-${album.accent}${activeId === album.id ? " shelf-active" : ""}${preview ? " shelf-previewing" : ""}${openingAlbumId === album.id ? " opening-source" : ""}`}
                           aria-label={`Open ${companionName}'s album, ${album.title}`}
                           aria-describedby={`shelf-description-${album.id}`}
+                          style={
+                            {
+                              "--shelf-preview-shift": `${previewShift}px`,
+                            } as CSSProperties
+                          }
                           onPointerDown={(event) => {
+                            clearHoverLeave();
                             pointerType.current = event.pointerType;
+                            if (event.pointerType !== "mouse") {
+                              setHoverId(null);
+                              changePreviewMode("pointer");
+                            }
                           }}
                           onPointerEnter={(event) => {
                             if (event.pointerType === "mouse") {
+                              clearHoverLeave();
                               setPreviewId(null);
                               setHoverId(album.id);
-                              setPreviewMode("pointer");
+                              changePreviewMode("pointer");
                             }
                           }}
                           onPointerLeave={(event) => {
-                            if (event.pointerType === "mouse")
-                              setHoverId((current) =>
-                                current === album.id ? null : current,
-                              );
+                            if (event.pointerType === "mouse") {
+                              clearHoverLeave();
+                              hoverLeaveTimer.current = setTimeout(() => {
+                                hoverLeaveTimer.current = null;
+                                setHoverId((current) =>
+                                  current === album.id ? null : current,
+                                );
+                              }, 80);
+                            }
                           }}
                           onFocus={(event) => {
                             setFocusId(album.id);
-                            if (event.currentTarget.matches(":focus-visible"))
-                              setPreviewMode("keyboard");
+                            if (event.currentTarget.matches(":focus-visible")) {
+                              clearHoverLeave();
+                              changePreviewMode("keyboard");
+                            }
                           }}
                           onClick={(event) => {
                             if (
@@ -280,6 +331,7 @@ export default function Bookshelf({
                             onOpen(album.id, event.currentTarget);
                           }}
                           onBlur={() => {
+                            clearHoverLeave();
                             setPreviewId((current) =>
                               current === album.id ? null : current,
                             );
