@@ -3,6 +3,25 @@ import type { PageDesign, PageSticker } from "@/lib/model";
 import { StickerArt } from "./StickerArt";
 import "./scrapbook.css";
 
+const storyPhotoDescriptions: Record<string, string> = {
+  "/images/stories/sam-supper.jpg":
+    "A rooftop supper table set for two beneath warm string lights.",
+  "/images/stories/sam-menu.jpg":
+    "A homemade menu drawn in pictures beside an orange-and-cinnamon dessert.",
+  "/images/stories/maya-lighthouse.jpg":
+    "A friend with a backpack follows a coastal path toward a lighthouse.",
+  "/images/stories/maya-capsule.jpg":
+    "An open keepsake tin holds old photographs, a blue button, a map, and a seashell.",
+  "/images/stories/june-cinema.jpg":
+    "Neighbors prepare a vintage picture house for a community screening.",
+  "/images/stories/june-film.jpg":
+    "Hands hold a small film reel beside a projector and family slides.",
+  "/images/stories/lily-expedition.jpg":
+    "A child explores a backyard blanket-fort field station at dusk as fireflies glow nearby.",
+  "/images/stories/lily-lanterns.jpg":
+    "Glowing paper lanterns and a hand-drawn star map make a backyard constellation.",
+};
+
 export function stickerStyle(sticker: PageSticker): CSSProperties {
   return {
     left: `${sticker.x}%`,
@@ -52,7 +71,10 @@ export default function ScrapbookPage({
               />
               <img
                 src={photo}
-                alt={`Photo accompanying “${title}”`}
+                alt={
+                  storyPhotoDescriptions[photo] ??
+                  `Photo accompanying “${title}”`
+                }
                 draggable={false}
               />
               {voice === "earth" &&

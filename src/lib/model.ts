@@ -59,6 +59,7 @@ export type AppData = {
   customAlbums?: Album[];
   customPeople?: Person[];
   demoStoriesVersion?: 1;
+  classicStoriesVersion?: 1;
   pages: Contribution[];
   drafts: Record<string, Draft>;
   checkIns: CheckIn[];
@@ -136,33 +137,33 @@ export const ALBUMS: Album[] = [
   {
     id: "lily",
     personId: "lily",
-    title: "Little wonders",
+    title: "The firefly expedition",
     subtitle: "With Lily · Daughter",
-    cover: "/images/lily.jpg",
+    cover: "/images/stories/lily-expedition.jpg",
     accent: "amber",
   },
   {
     id: "sam",
     personId: "sam",
-    title: "The everyday, together",
+    title: "The midnight supper club",
     subtitle: "With Sam · Partner",
-    cover: "/images/sam.jpg",
+    cover: "/images/stories/sam-supper.jpg",
     accent: "sage",
   },
   {
     id: "maya",
     personId: "maya",
-    title: "Same sky, different places",
+    title: "The lighthouse mystery",
     subtitle: "With Maya · Friend",
-    cover: "/images/maya.jpg",
+    cover: "/images/stories/maya-lighthouse.jpg",
     accent: "terracotta",
   },
   {
     id: "june",
     personId: "june",
-    title: "A little closer to home",
+    title: "One night at the picture house",
     subtitle: "With June · Mom & caregiver",
-    cover: "/images/june.jpg",
+    cover: "/images/stories/june-cinema.jpg",
     accent: "blue",
   },
   {
@@ -232,6 +233,9 @@ export function isLocalPhoto(value: unknown): value is string {
     ) &&
       value.length > 23) ||
       /^\/images\/(lily|sam|maya|june|gui|rosa|theo|blank-album)\.jpg$/.test(
+        value,
+      ) ||
+      /^\/images\/stories\/(sam-supper|sam-menu|maya-lighthouse|maya-capsule|june-cinema|june-film|lily-expedition|lily-lanterns)\.jpg$/.test(
         value,
       ))
   );
@@ -781,7 +785,8 @@ export function upgradeDemoStories(data: AppData): AppData {
   };
 }
 
-export function createInitialData(now = new Date()): AppData {
+/** Exact previous authored signatures, retained only to recognize untouched local examples. */
+function createOriginalStoryPages(now: Date): Contribution[] {
   const at = (hoursAgo: number) =>
     new Date(now.getTime() - hoursAgo * 3_600_000).toISOString();
   const seed = (
@@ -895,10 +900,418 @@ export function createInitialData(now = new Date()): AppData {
       { replyTo: "lily-3", photo: "/images/lily.jpg" },
     ),
   ];
+  return chronological(pages);
+}
+
+/** Revised, explicitly authored examples for the four original people in Alex's circle. */
+export function createClassicStoryPages(now: Date): Contribution[] {
+  const at = (hoursAgo: number) =>
+    new Date(now.getTime() - hoursAgo * 3_600_000).toISOString();
+  const seed = (
+    id: string,
+    albumId: string,
+    authorId: string,
+    hoursAgo: number,
+    title: string,
+    text: string,
+    extra: Partial<Contribution> = {},
+  ): Contribution => ({
+    id,
+    albumId,
+    authorId,
+    title,
+    text,
+    createdAt: at(hoursAgo),
+    status: "delivered",
+    sentAt: at(hoursAgo - 0.05),
+    deliveredAt: at(hoursAgo - 0.25),
+    ...extra,
+  });
+  const design = (
+    kind: "star" | "moon" | "stamp" | "sparkles",
+    tape: PageDesign["tape"] = "linen",
+  ): PageDesign => ({
+    layout: "classic",
+    tape,
+    photoTilt: -2,
+    stickers: [
+      {
+        id: `${kind}-keepsake`,
+        kind,
+        x: 85,
+        y: 83,
+        rotation: -10,
+        scale: 0.85,
+      },
+    ],
+  });
+  const pages = [
+    seed(
+      "june-1",
+      "june",
+      "june",
+      240,
+      "The picture house gets one more night",
+      "The neighborhood has permission to bring the old cinema back for one evening. We have a borrowed projector, twelve volunteers, and a popcorn machine with opinions. Behind the ticket booth I found a tin of our home movies. Will you help me choose the program? Your name is going on the little marquee.",
+      { photo: "/images/stories/june-cinema.jpg", design: design("stamp") },
+    ),
+    seed(
+      "sam-1",
+      "sam",
+      "sam",
+      216,
+      "Table for two, one in orbit",
+      "I turned the rooftop table into a restaurant. Candles, mismatched plates, and a cardboard sign: Mission Control Supper Club. Your chair has the good view. Tonight's challenge: invent a dish using bread, an orange, and whatever spice you miss most. Send the menu when your corner of the universe permits.",
+      {
+        photo: "/images/stories/sam-supper.jpg",
+        design: design("star", "sage"),
+      },
+    ),
+    seed(
+      "lily-1",
+      "lily",
+      "lily",
+      204,
+      "Expedition headquarters is under a blanket",
+      "Dad! Mom helped me build a field station in the backyard. It has a blanket roof, a torch, and a sign that says SMALL EXPLORERS ONLY. We are looking for fireflies tonight. I made you a paper expedition badge. Can you help us invent a constellation that belongs to our team?",
+      {
+        photo: "/images/stories/lily-expedition.jpg",
+        design: design("sparkles", "sage"),
+      },
+    ),
+    seed(
+      "sam-2",
+      "sam",
+      "alex",
+      192,
+      "The chef is requesting cinnamon",
+      "Toast the bread, add orange slices, then a little cinnamon. That is my best impression of a chef working from a flight manual. Call it Sunrise on the Flight Deck. I drew an absurdly tiny restaurant logo in my notebook. Please save the cardboard sign. I want to eat beneath it when I'm home.",
+      { replyTo: "sam-1", design: design("star") },
+    ),
+    seed(
+      "lily-2",
+      "lily",
+      "alex",
+      168,
+      "A map for the smallest explorers",
+      "Badge accepted, Expedition Captain Lily. Try three bright dots in a triangle, with one little dot following behind. It could be a boat, a fox, or something only you can see. Watch the fireflies with Mom and sketch their paths. I'll keep a page open for your discoveries after my quiet shift.",
+      { replyTo: "lily-1", design: design("moon") },
+    ),
+    seed(
+      "maya-1",
+      "maya",
+      "maya",
+      120,
+      "A postcard with our names on it",
+      "The lighthouse volunteer found a sealed tin in the community time-capsule display. Our names are on the lid. There is a postcard too: 20–8–5 / 2–5–14–3–8. Remember our old code? I'm following the public heritage path tomorrow. You were always better at the clues. Want to be my very distant detective?",
+      {
+        photo: "/images/stories/maya-lighthouse.jpg",
+        design: design("stamp", "midnight"),
+      },
+    ),
+    seed(
+      "maya-2",
+      "maya",
+      "alex",
+      108,
+      "A equals one. And I remember the bench.",
+      "It says THE BENCH. We used to number the alphabet on the backs of our notebooks. The blue bench by the public lookout is where your kite escaped and I insisted it was a weather experiment. Open the tin there. I have a strong suspicion our teenage selves are about to embarrass us.",
+      { replyTo: "maya-1", design: design("stamp") },
+    ),
+    seed(
+      "sam-4",
+      "sam",
+      "sam",
+      96,
+      "Opening night was slightly smoky",
+      "Sunrise on the Flight Deck is unexpectedly excellent. The first toast became a very small meteorite, but the second deserved a proper plate. I set your notebook logo beside the candle and read your page out loud. The neighbors now want reservations. We may have accidentally started a restaurant with a chef in space.",
+      { replyTo: "sam-2", design: design("star", "sage") },
+    ),
+    seed(
+      "lily-5",
+      "lily",
+      "lily",
+      96,
+      "One blink. Then another!",
+      "At first we only found the neighbor's porch light. Then a tiny green blink flew past the beans! Mom and I counted three before they disappeared into the leaves. I drew the triangle like you said. Mine looks like a little boat carrying one very brave firefly. What should we call it?",
+      { replyTo: "lily-2", design: design("sparkles") },
+    ),
+    seed(
+      "maya-3",
+      "maya",
+      "maya",
+      84,
+      "Adventure number four came true",
+      "Inside: the kite photograph, the lucky blue button from your old jacket, and our list of future adventures. Number four says 'one of us goes to space; the other keeps the snacks.' I laughed so loudly that a tourist asked about the exhibit. I told her my co-detective was currently a little beyond the lighthouse.",
+      {
+        replyTo: "maya-2",
+        photo: "/images/stories/maya-capsule.jpg",
+        design: design("stamp", "sage"),
+      },
+    ),
+    seed(
+      "lily-3",
+      "lily",
+      "alex",
+      72,
+      "Meet the Tiny Navigator",
+      "The Tiny Navigator: a small boat that follows one brave blink home. Put its name on our expedition map. I made the same four-dot drawing beside my window. When your lanterns go up, imagine mine here too. Your next mission is important: decide what snack a firefly captain would pack.",
+      { replyTo: "lily-5", design: design("moon", "midnight") },
+    ),
+    seed(
+      "maya-4",
+      "maya",
+      "alex",
+      60,
+      "Add a fifth adventure",
+      "Please put 'keep showing up for each other' beneath number four. We underestimated how much that one would matter. I copied the kite photo from memory: mostly sky, two terrible haircuts. Keep that lucky button in the album. When I'm back, the next clue can lead directly to the snack shop.",
+      { replyTo: "maya-3", design: design("stamp") },
+    ),
+    seed(
+      "sam-3",
+      "sam",
+      "alex",
+      48,
+      "A second course, from the quiet shift",
+      "The restaurant needs a dessert. My vote: orange peel curled into a tiny moon beside the last square of chocolate. And one rule for the menu: every dish gets a name that makes the other person laugh. I'm sending a five-star review in advance. One star for each thing I miss about sharing a table with you.",
+      { replyTo: "sam-4", design: design("star", "midnight") },
+    ),
+    seed(
+      "june-2",
+      "june",
+      "alex",
+      36,
+      "Put the bicycle before the stars",
+      "Start with the summer bicycle race, then the clip where everyone waves from the garden. Let the home movies come before the big space film. The best part of a picture house is recognizing someone you love on the screen. I wrote a short welcome for you to read. Tell them I'm in the back row, in spirit.",
+      { replyTo: "june-1", design: design("stamp", "sage") },
+    ),
+    seed(
+      "sam-5",
+      "sam",
+      "sam",
+      24,
+      "The menu now has your handwriting",
+      "Dessert is officially called One Small Bite for Mankind. I copied your welcome logo and tucked both our menus into the album. The restaurant stayed open until the candle gave up. Your empty chair didn't feel quite so empty tonight. Next service: breakfast, with a very unreasonable reservation time for an astronaut.",
+      {
+        replyTo: "sam-3",
+        photo: "/images/stories/sam-menu.jpg",
+        design: design("star"),
+      },
+    ),
+    seed(
+      "june-3",
+      "june",
+      "june",
+      24,
+      "The astronaut in the tin was eleven",
+      "One more reel was hiding underneath. You, in a cardboard space helmet, walking backward across the garden while the dog carries your flag. The label says ALEX'S MOON TEST. I had forgotten your very serious countdown. Do we dare show the neighborhood the commander's first mission?",
+      {
+        replyTo: "june-2",
+        photo: "/images/stories/june-film.jpg",
+        design: design("stamp"),
+      },
+    ),
+    seed(
+      "sam-6",
+      "sam",
+      "alex",
+      12,
+      "A reservation under both our names",
+      "Five stars, and a special award for the meteorite toast. I stuck a paper copy of the menu inside my locker. The place where I keep the mission checklist now also has a restaurant reservation. Make it for two, Sam. Any morning with you will do.",
+      { replyTo: "sam-5", design: design("star", "sage") },
+    ),
+    seed(
+      "june-4",
+      "june",
+      "alex",
+      12,
+      "The dog was clearly mission commander",
+      "Show it. Leave the countdown in, especially the part where I forget seven. End with the garden waving, then a card that says 'For everyone who kept the lights on.' You gave me a first audience long before there was a real launch. I like thinking I can still help fill a room with laughter from here.",
+      { replyTo: "june-3", design: design("stamp", "midnight") },
+    ),
+    seed(
+      "lily-4",
+      "lily",
+      "lily",
+      6,
+      "Our constellation has landed in the garden",
+      "We hung the lanterns like the Tiny Navigator! Mom helped with the high one. Then a real firefly blinked right beside our little boat, as if it knew the story. I left your badge on the second cushion. The captain's snack is three raisins and a biscuit crumb. I saved you the crumb.",
+      {
+        replyTo: "lily-3",
+        photo: "/images/stories/lily-lanterns.jpg",
+        design: design("sparkles", "sage"),
+      },
+    ),
+    seed(
+      "june-5",
+      "june",
+      "june",
+      2,
+      "We laughed right through the countdown",
+      "Every seat was full. The popcorn machine behaved, the children cheered for the dog, and the whole room shouted the missing seven. I read your welcome before the lights went down. For one lovely evening, the old picture house felt like our biggest living room. Your name stayed on the marquee until closing.",
+      { replyTo: "june-4", design: design("stamp", "sage") },
+    ),
+    seed(
+      "lily-6",
+      "lily",
+      "alex",
+      1,
+      "I can see our boat from here",
+      "I put the Tiny Navigator on my locker, right beside our team badge. You found the fireflies; I helped name the boat. That makes it a real expedition together. Keep my cushion in headquarters, Captain. I'll bring the next biscuit, and you can tell me which way our brave little light should travel.",
+      { replyTo: "lily-4", design: design("moon") },
+    ),
+  ];
+  return chronological(advanceDelivery(pages, true, now));
+}
+
+const sameAuthoredContent = (page: Contribution, reference: Contribution) =>
+  page.id === reference.id &&
+  page.albumId === reference.albumId &&
+  page.authorId === reference.authorId &&
+  page.title === reference.title &&
+  page.text === reference.text &&
+  page.photo === reference.photo &&
+  JSON.stringify(page.design) === JSON.stringify(reference.design) &&
+  page.replyTo === reference.replyTo;
+
+/** Refresh only complete, untouched original examples; personalized albums remain intact. */
+export function upgradeClassicStories(data: AppData): AppData {
+  if (data.classicStoriesVersion === 1) return data;
+  const referenceTime = new Date("2026-11-15T12:00:00Z");
+  const original = createOriginalStoryPages(referenceTime);
+  const priorById = new Map(data.pages.map((page) => [page.id, page]));
+  const eligibleAlbums = new Set(
+    ["sam", "maya", "june", "lily"].filter((albumId) =>
+      original
+        .filter((page) => page.albumId === albumId)
+        .every((reference) => {
+          const page = priorById.get(reference.id);
+          return (
+            !!page &&
+            sameAuthoredContent(page, reference) &&
+            ["delivered", "answered"].includes(page.status)
+          );
+        }),
+    ),
+  );
+  const trustedAnchor = original.find((page) =>
+    eligibleAlbums.has(page.albumId),
+  );
+  const anchor = trustedAnchor
+    ? new Date(
+        Date.parse(priorById.get(trustedAnchor.id)!.createdAt) +
+          referenceTime.getTime() -
+          Date.parse(trustedAnchor.createdAt),
+      )
+    : referenceTime;
+  const revised = createClassicStoryPages(anchor);
+  const revisedById = new Map(revised.map((page) => [page.id, page]));
+  const originalIds = new Set(original.map((page) => page.id));
+  const additions = revised.filter(
+    (page) => eligibleAlbums.has(page.albumId) && !originalIds.has(page.id),
+  );
+  const ids = new Set(data.pages.map((page) => page.id));
+  const mappedIds = new Map<string, string>();
+  for (const page of additions) {
+    let id = page.id;
+    if (ids.has(id)) {
+      let suffix = 1;
+      do {
+        id = `classic-${page.id}-${suffix++}`;
+      } while (ids.has(id));
+    }
+    ids.add(id);
+    mappedIds.set(page.id, id);
+  }
+  const added = additions.map((page) => ({
+    ...page,
+    id: mappedIds.get(page.id)!,
+    ...(page.replyTo
+      ? { replyTo: mappedIds.get(page.replyTo) ?? page.replyTo }
+      : {}),
+  }));
+  const newlyLinkedIds: string[] = [];
+  const pages = data.pages.map((prior) => {
+    if (!eligibleAlbums.has(prior.albumId) || !originalIds.has(prior.id))
+      return prior;
+    const updated = revisedById.get(prior.id)!;
+    const replyTo =
+      prior.replyTo ??
+      (updated.replyTo
+        ? (mappedIds.get(updated.replyTo) ?? updated.replyTo)
+        : undefined);
+    if (!prior.replyTo && replyTo) newlyLinkedIds.push(prior.id);
+    const { photo: _oldPhoto, design: _oldDesign, ...history } = prior;
+    return {
+      ...history,
+      title: updated.title,
+      text: updated.text,
+      ...(updated.photo ? { photo: updated.photo } : {}),
+      ...(updated.design ? { design: updated.design } : {}),
+      ...(replyTo ? { replyTo } : {}),
+    };
+  });
+  const combined = [...pages, ...added];
+  const introducedReplyIds = new Set([
+    ...newlyLinkedIds,
+    ...added.map((page) => page.id),
+  ]);
+  const answeredBy = new Map<string, string>();
+  for (const reply of combined) {
+    if (
+      !introducedReplyIds.has(reply.id) ||
+      !reply.replyTo ||
+      !reply.deliveredAt ||
+      !["delivered", "answered"].includes(reply.status)
+    )
+      continue;
+    const parent = priorById.get(reply.replyTo);
+    if (
+      !parent ||
+      !eligibleAlbums.has(parent.albumId) ||
+      !originalIds.has(parent.id) ||
+      parent.albumId !== reply.albumId ||
+      parent.authorId === reply.authorId
+    )
+      continue;
+    const previous = answeredBy.get(parent.id);
+    if (!previous || Date.parse(reply.deliveredAt) < Date.parse(previous))
+      answeredBy.set(parent.id, reply.deliveredAt);
+  }
+  // Newly introduced, already delivered authored replies also have results offline.
+  // Earlier Answered records keep their historical timestamp exactly; no transport advances here.
+  const reconciled = combined.map((page): Contribution => {
+    const answeredAt = answeredBy.get(page.id);
+    return answeredAt && page.status === "delivered"
+      ? { ...page, status: "answered", answeredAt }
+      : page;
+  });
+  // These are old, authored sample chapters, not newly delivered personal messages.
+  const historicalReplies = [
+    ...newlyLinkedIds,
+    ...added.filter((page) => page.replyTo).map((page) => page.id),
+  ];
+  const readReplyIds = [
+    ...data.readReplyIds,
+    ...historicalReplies.filter((id) => !data.readReplyIds.includes(id)),
+  ];
+  return {
+    ...data,
+    classicStoriesVersion: 1,
+    pages: chronological(reconciled),
+    readReplyIds,
+  };
+}
+
+export function createInitialData(now = new Date()): AppData {
   return {
     version: 1,
     demoStoriesVersion: 1,
-    pages: chronological([...pages, ...createNewStoryPages(now)]),
+    classicStoriesVersion: 1,
+    pages: chronological([
+      ...createClassicStoryPages(now),
+      ...createNewStoryPages(now),
+    ]),
     drafts: {},
     checkIns: [],
     readReplyIds: [],

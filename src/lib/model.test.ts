@@ -5,6 +5,7 @@ import {
   advanceDelivery,
   createAlbum,
   createInitialData,
+  isLocalPhoto,
   formatDate,
   getReplyNotifications,
   getAlbums,
@@ -38,7 +39,7 @@ test("adding an album creates an empty persistent book with bounded title and ex
   const book = getAlbums(data).find((item) => item.id === "album-garden")!;
   assert.equal(book.title, "Growing together");
   assert.equal(book.personId, "lily");
-  assert.equal(book.cover, "/images/lily.jpg");
+  assert.equal(book.cover, "/images/stories/lily-expedition.jpg");
   assert.equal(book.accent, "amber");
   assert.equal(getAlbums(data).length, 8);
   assert.deepEqual(data.pages, []);
@@ -520,19 +521,125 @@ test("crisis cues surface support in English and Portuguese without treating act
 
 test("the initial albums contain chronological pages, an incoming result, and no fabricated transit state", () => {
   const data = createInitialData(now);
-  assert.equal(data.pages.length, 24);
+  assert.equal(data.pages.length, 6 + 4 + 5 + 6 + 6 + 4 + 4);
   assert.deepEqual(data.readReplyIds, []);
-  assert.equal(getReplyNotifications(data, "alex").length, 5);
-  assert.equal(
-    data.pages.filter(
-      (p) => p.authorId === "alex" && p.status === "delivered" && !p.replyTo,
-    ).length,
-    2,
+  assert.deepEqual(
+    new Set(getReplyNotifications(data, "alex").map((page) => page.id)),
+    new Set([
+      "sam-4",
+      "sam-5",
+      "maya-3",
+      "june-3",
+      "june-5",
+      "lily-5",
+      "lily-4",
+      "gui-3",
+      "gui-5",
+      "rosa-3",
+      "theo-3",
+    ]),
+  );
+  assert.ok(
+    data.pages.every(
+      (page) => page.status === "answered" || page.status === "delivered",
+    ),
+  );
+  assert.ok(
+    data.pages
+      .filter((page) => page.authorId === "alex")
+      .every((page) => page.replyTo),
   );
   assert.deepEqual(
     data.pages.map((p) => p.createdAt),
     [...data.pages.map((p) => p.createdAt)].sort(),
   );
+});
+
+test("the four revised albums tell complete alternating stories, each with two distinct approved photographs", () => {
+  const data = createInitialData(now);
+  const expected = [
+    [
+      "sam",
+      6,
+      "The midnight supper club",
+      "/images/stories/sam-supper.jpg",
+      "/images/stories/sam-menu.jpg",
+    ],
+    [
+      "maya",
+      4,
+      "The lighthouse mystery",
+      "/images/stories/maya-lighthouse.jpg",
+      "/images/stories/maya-capsule.jpg",
+    ],
+    [
+      "june",
+      5,
+      "One night at the picture house",
+      "/images/stories/june-cinema.jpg",
+      "/images/stories/june-film.jpg",
+    ],
+    [
+      "lily",
+      6,
+      "The firefly expedition",
+      "/images/stories/lily-expedition.jpg",
+      "/images/stories/lily-lanterns.jpg",
+    ],
+  ] as const;
+  for (const [albumId, count, title, firstPhoto, secondPhoto] of expected) {
+    const album = getAlbums(data).find((item) => item.id === albumId)!;
+    assert.equal(album.title, title);
+    assert.equal(album.cover, firstPhoto);
+    const pages = data.pages.filter((page) => page.albumId === albumId);
+    assert.equal(pages.length, count);
+    assert.equal(pages[0].authorId, albumId);
+    assert.deepEqual(
+      new Set(pages.flatMap((page) => (page.photo ? [page.photo] : []))),
+      new Set([firstPhoto, secondPhoto]),
+    );
+    assert.ok(pages.filter((page) => page.authorId === "alex").length >= 2);
+    for (let index = 1; index < pages.length; index++) {
+      assert.equal(pages[index].replyTo, pages[index - 1].id);
+      assert.notEqual(pages[index].authorId, pages[index - 1].authorId);
+      assert.equal(pages[index - 1].status, "answered");
+      assert.equal(pages[index - 1].answeredAt, pages[index].deliveredAt);
+      assert.ok(
+        Date.parse(pages[index].createdAt) >
+          Date.parse(pages[index - 1].createdAt),
+      );
+    }
+    assert.equal(pages.at(-1)!.status, "delivered");
+  }
+});
+
+test("the photo allowlist accepts exactly the eight new story assets while retaining historical local photos", () => {
+  for (const name of [
+    "sam-supper",
+    "sam-menu",
+    "maya-lighthouse",
+    "maya-capsule",
+    "june-cinema",
+    "june-film",
+    "lily-expedition",
+    "lily-lanterns",
+  ])
+    assert.equal(isLocalPhoto(`/images/stories/${name}.jpg`), true);
+  for (const path of [
+    "/images/sam.jpg",
+    "/images/lily.jpg",
+    "/images/maya.jpg",
+    "/images/june.jpg",
+  ])
+    assert.equal(isLocalPhoto(path), true);
+  for (const path of [
+    "/images/stories/unknown.jpg",
+    "/images/stories/sam-supper.png",
+    "/images/stories/sam-supper.jpg?tracking=1",
+    "/images/stories/../sam.jpg",
+    "https://example.com/images/stories/sam-supper.jpg",
+  ])
+    assert.equal(isLocalPhoto(path), false);
 });
 
 test("three new authored albums contain complete chronological exchanges with exact reply results", () => {

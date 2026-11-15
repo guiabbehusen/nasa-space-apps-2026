@@ -7,6 +7,7 @@ import {
   isCustomPerson,
   isLocalPhoto,
   upgradeDemoStories,
+  upgradeClassicStories,
   type Album,
   type AppData,
   type Contribution,
@@ -99,6 +100,8 @@ export function parseStoredData(raw: string): AppData {
     throw new Error("Unrecognized saved data");
   if (v.demoStoriesVersion !== undefined && v.demoStoriesVersion !== 1)
     invalid();
+  if (v.classicStoriesVersion !== undefined && v.classicStoriesVersion !== 1)
+    invalid();
   const customPeople = v.customPeople === undefined ? [] : v.customPeople;
   if (
     !Array.isArray(customPeople) ||
@@ -168,16 +171,21 @@ export function parseStoredData(raw: string): AppData {
     if (d.replyTo && !validReply(d.replyTo, albumId, authorId)) invalid();
     drafts[key] = d;
   }
-  return upgradeDemoStories({
-    version: 1,
-    ...(v.customAlbums === undefined ? {} : { customAlbums }),
-    ...(v.customPeople === undefined ? {} : { customPeople }),
-    ...(v.demoStoriesVersion === undefined ? {} : { demoStoriesVersion: 1 }),
-    pages,
-    drafts,
-    checkIns,
-    readReplyIds,
-  });
+  return upgradeClassicStories(
+    upgradeDemoStories({
+      version: 1,
+      ...(v.customAlbums === undefined ? {} : { customAlbums }),
+      ...(v.customPeople === undefined ? {} : { customPeople }),
+      ...(v.demoStoriesVersion === undefined ? {} : { demoStoriesVersion: 1 }),
+      ...(v.classicStoriesVersion === undefined
+        ? {}
+        : { classicStoriesVersion: 1 }),
+      pages,
+      drafts,
+      checkIns,
+      readReplyIds,
+    }),
+  );
 }
 
 /** Canvas re-encoding strips source metadata and keeps the queued payload small. */

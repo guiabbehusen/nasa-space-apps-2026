@@ -5,6 +5,7 @@ import {
   advanceDelivery,
   createAlbum,
   createInitialData,
+  getReplyNotifications,
   getPeople,
   MAX_CUSTOM_ALBUMS,
   type AppData,
@@ -53,7 +54,7 @@ test("a valid saved snapshot round-trips with every page, draft, reflection and 
   const data = saved();
   const restored = parse(data);
   assert.deepEqual(restored, data);
-  assert.equal(restored.pages.length, 24);
+  assert.equal(restored.pages.length, data.pages.length);
   assert.equal(Object.keys(restored.drafts).length, 2);
   assert.equal(restored.checkIns[0].note, "A quiet but good week.");
 });
@@ -129,6 +130,365 @@ const customSaved = () => {
     new Date(now.getTime() + 20_000),
   );
 };
+
+/** Exact authored fields from the version shipped before the four story refreshes. */
+const legacyClassicSaved = (): AppData => {
+  const data = customSaved();
+  const at = (hoursAgo: number) =>
+    new Date(now.getTime() - hoursAgo * 3_600_000).toISOString();
+  const seed = (
+    id: string,
+    albumId: string,
+    authorId: string,
+    hoursAgo: number,
+    title: string,
+    text: string,
+    extra: Partial<AppData["pages"][number]> = {},
+  ): AppData["pages"][number] => ({
+    id,
+    albumId,
+    authorId,
+    title,
+    text,
+    createdAt: at(hoursAgo),
+    sentAt: at(hoursAgo - 0.05),
+    deliveredAt: at(hoursAgo - 0.25),
+    status: "delivered",
+    ...extra,
+  });
+  const oldPages = [
+    seed(
+      "june-1",
+      "june",
+      "june",
+      240,
+      "The kitchen is still yours",
+      "The rosemary on the windowsill has grown a little wild. I made your favorite tea and sat in the afternoon light. There will always be a place for you at this table.",
+      { photo: "/images/june.jpg" },
+    ),
+    seed(
+      "sam-1",
+      "sam",
+      "sam",
+      216,
+      "Saving you the window seat",
+      "It rained all morning, so I took our books to the little café. Your chair caught the only patch of sun. I thought you would like that.",
+      { status: "answered", answeredAt: at(191.75), photo: "/images/sam.jpg" },
+    ),
+    seed(
+      "lily-1",
+      "lily",
+      "lily",
+      204,
+      "A very important pancake",
+      "Dad! I made a pancake shaped like Saturn. The rings fell off but Mom says that happens in space sometimes. I saved a picture for you.",
+      { status: "answered", answeredAt: at(167.75), photo: "/images/lily.jpg" },
+    ),
+    seed(
+      "sam-2",
+      "sam",
+      "alex",
+      192,
+      "A seat beside the stars",
+      "I read a chapter during our quiet hour today. The view was a little different, but for a moment it felt like we were sitting together. Keep my place.",
+      { replyTo: "sam-1" },
+    ),
+    seed(
+      "lily-2",
+      "lily",
+      "alex",
+      168,
+      "Best planet in the solar system",
+      "I can almost smell the pancakes from here. Saturn loses bits of its rings too, so yours sounds very accurate. Next time, could you make a tiny moon for me?",
+      { replyTo: "lily-1" },
+    ),
+    seed(
+      "maya-1",
+      "maya",
+      "maya",
+      120,
+      "The long way home",
+      "I took the coastal path after work. Same bend in the trail, same unreasonable wind. I stopped where we used to watch the boats and sent a hello up to your part of the sky.",
+      { photo: "/images/maya.jpg" },
+    ),
+    seed(
+      "lily-3",
+      "lily",
+      "alex",
+      72,
+      "Our little moon garden",
+      "I checked on the little plant we started before launch. A new leaf has opened! I wondered how your windowsill garden is doing. Maybe our plants can be pen pals.",
+      { status: "answered", answeredAt: at(5.75) },
+    ),
+    seed(
+      "sam-3",
+      "sam",
+      "alex",
+      48,
+      "Something ordinary to keep",
+      "The first sip of coffee today reminded me of our slow Saturday mornings. Tell me one ordinary thing from your day, whenever a moment finds you. There is no hurry.",
+      { photo: "/images/sam.jpg" },
+    ),
+    seed(
+      "june-2",
+      "june",
+      "alex",
+      36,
+      "I brought the recipe",
+      "I found your handwritten soup recipe tucked into my notebook. The little note at the bottom says, ‘a little more lemon.’ It made me feel close to home today.",
+    ),
+    seed(
+      "lily-4",
+      "lily",
+      "lily",
+      6,
+      "The moon got a friend",
+      "Our bean has TWO new leaves! I drew a tiny astronaut next to the pot so it has someone to talk to. Please tell your space plant that mine says hello.",
+      { replyTo: "lily-3", photo: "/images/lily.jpg" },
+    ),
+  ];
+  data.pages = [
+    ...data.pages.filter(
+      (page) => !["sam", "maya", "june", "lily"].includes(page.albumId),
+    ),
+    ...oldPages,
+  ].sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+  data.customAlbums![0].cover = "/images/lily.jpg";
+  delete data.classicStoriesVersion;
+  return data;
+};
+
+test("untouched older demo albums receive the four complete story arcs without losing their delivery history or personal records", () => {
+  let legacy = legacyClassicSaved();
+  legacy = addContribution(
+    legacy,
+    {
+      albumId: "sam",
+      authorId: "sam",
+      title: "A personal reply",
+      text: "These are my own words.",
+      replyTo: "sam-3",
+    },
+    now,
+  );
+  const personalReply = legacy.pages.find(
+    (page) => page.title === "A personal reply",
+  )!;
+  legacy.drafts["sam:sam"].replyTo = "sam-3";
+  const raw = JSON.stringify(legacy);
+  const beforeNotifications = getReplyNotifications(legacy, "alex").map(
+    (page) => page.id,
+  );
+  const upgraded = parseStoredData(raw);
+  assert.equal(upgraded.classicStoriesVersion, 1);
+  assert.equal(upgraded.pages.length, legacy.pages.length + 11);
+  for (const [albumId, count] of [
+    ["sam", 6],
+    ["maya", 4],
+    ["june", 5],
+    ["lily", 6],
+  ] as const)
+    assert.equal(
+      upgraded.pages.filter(
+        (page) => page.albumId === albumId && page.id !== personalReply.id,
+      ).length,
+      count,
+    );
+  for (const prior of legacy.pages) {
+    const next = upgraded.pages.find((page) => page.id === prior.id)!;
+    if (
+      !["sam", "maya", "june", "lily"].includes(prior.albumId) ||
+      prior.id === personalReply.id
+    ) {
+      assert.deepEqual(next, prior);
+      continue;
+    }
+    assert.equal(next.createdAt, prior.createdAt);
+    assert.equal(next.sentAt, prior.sentAt);
+    assert.equal(next.deliveredAt, prior.deliveredAt);
+    if (prior.status === "answered") {
+      assert.equal(next.answeredAt, prior.answeredAt);
+      assert.equal(next.status, prior.status);
+    } else {
+      const reply = upgraded.pages.find(
+        (page) => page.replyTo === prior.id && page.deliveredAt,
+      )!;
+      assert.equal(next.status, "answered");
+      assert.equal(next.answeredAt, reply.deliveredAt);
+    }
+    if (prior.replyTo) assert.equal(next.replyTo, prior.replyTo);
+  }
+  for (const [child, parent] of [
+    ["sam-3", "sam-4"],
+    ["june-2", "june-1"],
+    ["lily-3", "lily-5"],
+  ]) {
+    assert.equal(
+      upgraded.pages.find((page) => page.id === child)!.replyTo,
+      parent,
+    );
+    assert.ok(upgraded.readReplyIds.includes(child));
+  }
+  assert.deepEqual(
+    getReplyNotifications(upgraded, "alex").map((page) => page.id),
+    beforeNotifications,
+  );
+  assert.deepEqual(
+    upgraded.readReplyIds.slice(0, legacy.readReplyIds.length),
+    legacy.readReplyIds,
+  );
+  assert.deepEqual(upgraded.drafts, legacy.drafts);
+  assert.deepEqual(upgraded.checkIns, legacy.checkIns);
+  assert.deepEqual(upgraded.customAlbums, legacy.customAlbums);
+  assert.equal(JSON.stringify(legacy), raw);
+  assert.deepEqual(parse(upgraded), upgraded);
+});
+
+test("an offline story refresh derives Answered only from introduced delivered replies and preserves earlier answer history", () => {
+  const legacy = legacyClassicSaved();
+  const alreadyAnswered = legacy.pages.find((page) => page.id === "sam-1")!;
+  alreadyAnswered.answeredAt = "2026-10-01T10:00:00.000Z";
+  const upgraded = parse(legacy);
+  const offline = advanceDelivery(
+    upgraded.pages,
+    false,
+    new Date("2027-01-01T00:00:00Z"),
+  );
+  assert.equal(
+    offline,
+    upgraded.pages,
+    "offline transport does not need to run to reconcile the authored results",
+  );
+  for (const [parentId, replyId] of [
+    ["sam-2", "sam-4"],
+    ["sam-3", "sam-5"],
+    ["maya-1", "maya-2"],
+    ["june-1", "june-2"],
+    ["june-2", "june-3"],
+    ["lily-2", "lily-5"],
+    ["lily-4", "lily-6"],
+  ]) {
+    const prior = legacy.pages.find((page) => page.id === parentId)!;
+    const parent = offline.find((page) => page.id === parentId)!;
+    const reply = offline.find((page) => page.id === replyId)!;
+    assert.equal(prior.status, "delivered");
+    assert.equal(parent.status, "answered");
+    assert.equal(parent.answeredAt, reply.deliveredAt);
+    assert.equal(parent.createdAt, prior.createdAt);
+    assert.equal(parent.sentAt, prior.sentAt);
+    assert.equal(parent.deliveredAt, prior.deliveredAt);
+  }
+  assert.equal(
+    offline.find((page) => page.id === "sam-1")!.answeredAt,
+    alreadyAnswered.answeredAt,
+  );
+  for (const page of legacy.pages.filter(
+    (page) => page.albumId === "album-garden",
+  ))
+    assert.deepEqual(
+      offline.find((item) => item.id === page.id),
+      page,
+    );
+});
+
+test("a personally edited original chapter keeps its entire album intact and receives no historical replies", () => {
+  for (const patch of [
+    { title: "My personal title" },
+    { text: "My own story." },
+    { photo: "data:image/jpeg;base64,/9j/2Q==" },
+    { design: design() },
+    { replyTo: "sam-1" },
+  ]) {
+    const legacy = legacyClassicSaved();
+    Object.assign(legacy.pages.find((page) => page.id === "sam-3")!, patch);
+    const samBefore = legacy.pages.filter((page) => page.albumId === "sam");
+    const upgraded = parse(legacy);
+    assert.deepEqual(
+      upgraded.pages.filter((page) => page.albumId === "sam"),
+      samBefore,
+    );
+    assert.equal(
+      upgraded.pages.filter((page) => page.albumId === "maya").length,
+      4,
+    );
+    assert.deepEqual(parse(upgraded), upgraded);
+  }
+});
+
+test("removed original demo chapters stay removed instead of being resurrected by the story refresh", () => {
+  const legacy = legacyClassicSaved();
+  legacy.pages = legacy.pages.filter((page) => page.id !== "sam-3");
+  const samBefore = legacy.pages.filter((page) => page.albumId === "sam");
+  const upgraded = parse(legacy);
+  assert.deepEqual(
+    upgraded.pages.filter((page) => page.albumId === "sam"),
+    samBefore,
+  );
+  assert.equal(
+    upgraded.pages.some((page) => page.id === "sam-3"),
+    false,
+  );
+  assert.deepEqual(parse(upgraded), upgraded);
+});
+
+test("a missing first June chapter and a much newer personal page cannot move the historical story dates", () => {
+  let legacy = legacyClassicSaved();
+  legacy.pages = legacy.pages.filter((page) => page.id !== "june-1");
+  legacy = addContribution(
+    legacy,
+    {
+      albumId: "maya",
+      authorId: "alex",
+      title: "A newer personal moment",
+      text: "This page belongs to a later month.",
+    },
+    new Date(now.getTime() + 30 * 86_400_000),
+  );
+  const upgraded = parse(legacy);
+  const byId = new Map(upgraded.pages.map((page) => [page.id, page]));
+  for (const page of upgraded.pages) {
+    if (page.replyTo)
+      assert.ok(
+        Date.parse(byId.get(page.replyTo)!.createdAt) <
+          Date.parse(page.createdAt),
+        `${page.id} must follow its parent`,
+      );
+  }
+  for (const old of legacy.pages)
+    assert.equal(byId.get(old.id)!.createdAt, old.createdAt);
+  assert.equal(
+    upgraded.pages.some((page) => page.id === "june-1"),
+    false,
+  );
+  assert.deepEqual(parse(upgraded), upgraded);
+});
+
+test("a user page colliding with an added chapter keeps its ID while historical reply links use the remapped chapter", () => {
+  const legacy = legacyClassicSaved();
+  const userPage = {
+    ...legacy.pages.find((page) => page.id === "sam-3")!,
+    id: "sam-4",
+    title: "My own page",
+    text: "This ID was already here.",
+    photo: undefined,
+  };
+  delete userPage.photo;
+  legacy.pages.push(userPage);
+  legacy.readReplyIds.push("sam-4");
+  const upgraded = parse(legacy);
+  assert.deepEqual(
+    upgraded.pages.find((page) => page.id === "sam-4"),
+    userPage,
+  );
+  const added = upgraded.pages.find((page) => page.id === "classic-sam-4-1")!;
+  assert.equal(added.title, "Opening night was slightly smoky");
+  assert.equal(
+    upgraded.pages.find((page) => page.id === "sam-3")!.replyTo,
+    added.id,
+  );
+  assert.ok(upgraded.readReplyIds.includes(added.id));
+  assert.deepEqual(parse(upgraded), upgraded);
+});
 
 test("added albums, their contributions and both participant drafts round-trip with legacy records", () => {
   const data = customSaved();
@@ -393,6 +753,7 @@ test("malformed JSON or an unsupported root schema is rejected rather than repai
     [],
     {},
     { ...saved(), version: 2 },
+    { ...saved(), classicStoriesVersion: 2 },
     { ...saved(), drafts: [] },
     { ...saved(), pages: null },
   ]) {

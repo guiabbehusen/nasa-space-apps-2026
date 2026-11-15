@@ -1,5 +1,15 @@
 # Still Here: product and implementation decisions
 
+## Revised original albums
+
+The four original examples now tell complete, playful adventures across the distance: Sam's midnight supper club, Maya's lighthouse mystery, June's neighborhood cinema revival, and Lily's firefly expedition. Their 21 authored pages give both the loved one and Alex an active part. Combined with Gui, Rosa, and Theo, a fresh browser contains 35 example pages in seven albums. Replies remain explicit authored records with chronological dates and exact parent links; the delivery simulator never writes a response.
+
+Eight new square photographs provide two distinct scenes per revised album. Their fictional provenance and exact built-in image-generation prompts are documented in [ASSETS.md](ASSETS.md) and [STORY_IMAGE_PROMPTS.md](STORY_IMAGE_PROMPTS.md). The new files have new URLs so existing cached cover photographs cannot mask the change. Original stock assets remain available for saved pages and custom covers. The shared paper renderer supplies descriptive alternative text for the eight new scenes; tape, corners, and page composition remain native interface elements.
+
+An optional `classicStoriesVersion` marker refreshes eligible old browser examples once. Each album's original seed IDs and authored-content signatures must all match before its example text is replaced and new chapters are added. A personalized or missing original page leaves that album intact. Original IDs, creation/sent/delivered dates, existing answer history, existing reply links, custom contributions, drafts, check-ins, and custom albums are retained. Untouched delivered demo pages become answered when the revised authored history introduces an actual delivered response, using that response's recorded delivery date even offline. New seed IDs are remapped if they collide with a saved page. Missing links in the revised authored exchanges are explicitly resolved; newly introduced historical example replies are marked read during migration to avoid presenting them as freshly received personal messages. Historical dates are anchored to verified original examples, rather than a newer personal page. Reloading does not recreate the chapters a second time.
+
+## Visual identity
+
 The palette uses slate-blue application text, olive actions, and cloth covers in olive, clay, and slate. The first album's former ochre token now uses olive (`#64663c`) consistently on the shelf, moving cover, and open book. The main cream canvas remains; the immersive reader has its own parchment surface and olive ink. A darker slate-blue navigation bar with cream text distinguishes navigation from the canvas; selected items have a separate indicator as well as a different background. Avatars, delivery states, physical book bindings, and the navy night mode use the coordinated color tokens. Earlier contrast calculations are recorded in VERIFICATION.md; they are not a full audit of the revised textured reader.
 
 The light palette uses a visible warm cream background (`#f2e7d4`), with cream surfaces and paper. Albums stand upright on a continuous light-maple display ledge, arranged four across on desktop and two per row on mobile. Their names, story titles, dates, and update states remain; relationship subtitles are omitted. The night palette retains its navy background and uses darker wooden ledges.
@@ -83,7 +93,7 @@ The implementation uses Next.js 16.4.6, TypeScript, React 19, and Tailwind CSS 4
 
 Use `npm ci` to install the lockfile, `npm run dev` for local development, `npm run typecheck` for TypeScript checking, `npm test` for model tests, and `npm run build` followed by `npm run preview` to inspect the export. `next start` does not serve this static-export workflow.
 
-`.openai/hosting.json` records the Sites project binding and `out/` directory. The review deployment remains private through Sites access settings; that file is not itself an authentication mechanism. The application source is maintained on the original GitHub repository's `main` branch. A release has two distinct steps: push the validated source to GitHub and deploy its matching build through Sites.
+`.openai/hosting.json` records the Sites project binding and `out/` directory. After explicit owner approval, the demonstration is public at [still-here.health](https://still-here.health), without ChatGPT login. Access is managed through Sites settings; the manifest is not itself an authentication mechanism. Public hosting exposes the bundled fictional examples and app files, while visitor-written records remain in that browser's local storage. The application source is maintained on the original GitHub repository's `main` branch. A release has two distinct steps: push the validated source to GitHub and deploy its matching build through Sites.
 
 ## Verification approach
 

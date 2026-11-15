@@ -1,6 +1,6 @@
 # Image credits
 
-Album-cover photographs are illustrative stock memories, not depictions of the fictional participants or of real astronauts. All files are self-hosted JPEG crops at 720 × 720 pixels, downloaded on 14 November 2026. No runtime request to Unsplash is required.
+The four stock photographs below remain as legacy-compatible assets for older local albums. Current Sam, Maya, June, and Lily covers and story photographs use original generated scenes under `public/images/stories/`, documented at the end of this file. The stock memories do not depict the fictional participants or real astronauts. These legacy files are self-hosted JPEG crops at 720 × 720 pixels, downloaded on 14 November 2026. No runtime request to Unsplash is required. Their original credits and license details are retained below.
 
 | Local file               | Photographer   | Original photograph                                                                                                                          | File size     |
 | ------------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
@@ -72,3 +72,22 @@ Use case: photorealistic-natural. Asset type: square photograph for a warm share
 ```text
 Use case: photorealistic-natural. Asset type: square neutral placeholder photograph for the front cover of a cozy personal scrapbook. An unmarked cream postcard lying on a warm wooden desk, a tiny pressed yellow flower and a plain wooden pencil nearby. Soft afternoon window light, real paper fibers and subtle wood texture, warm nostalgic everyday photo, calm and minimal composition with postcard centered. Full-bleed photograph only. Absolutely no text or handwriting or symbols, no logo, no border or frame, no people or hands, no watermark.
 ```
+
+## Generated Sam, Maya, June, and Lily story photographs
+
+Eight original illustrative photographs were generated on 15 November 2026 with the built-in `image_gen` tool, applying the imagegen skill in built-in generate mode (`photorealistic-natural`). One independent call produced each square scene. These are fictional family memories, not NASA photographs, records of actual missions, or depictions of real participants. They do not establish a real person's identity or affiliation.
+
+All final JPEGs are self-hosted at 720 × 720 pixels, resized and compressed at quality 82 with the existing Sharp dependency, without content editing. No frames, tape, text overlays, or application UI are baked into the images; the interface supplies the physical scrapbook treatment. No runtime photo-service requests are required.
+
+| Local file                                  | Scene                                                                                 | Dimensions | File size    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------- | ---------- | ------------ |
+| `public/images/stories/sam-supper.jpg`      | Cozy rooftop supper for two, folded blank place cards and orange-cinnamon dessert     | 720 × 720  | 85,798 bytes |
+| `public/images/stories/sam-menu.jpg`        | Homemade menu made of food drawings, cake, orange peel and cinnamon                   | 720 × 720  | 89,319 bytes |
+| `public/images/stories/maya-lighthouse.jpg` | Anonymous friend discovering a lighthouse on a public coastal path                    | 720 × 720  | 91,861 bytes |
+| `public/images/stories/maya-capsule.jpg`    | Weathered keepsake tin, indistinct old snapshots, blue button, shell and drawn map    | 720 × 720  | 82,517 bytes |
+| `public/images/stories/june-cinema.jpg`     | Fictional older woman and volunteers reviving a small community cinema                | 720 × 720  | 72,752 bytes |
+| `public/images/stories/june-film.jpg`       | Older hands with Super 8 reel, projector and indistinct family slides                 | 720 × 720  | 72,788 bytes |
+| `public/images/stories/lily-expedition.jpg` | Fictional child in supervised backyard blanket-fort expedition, free-flying fireflies | 720 × 720  | 69,056 bytes |
+| `public/images/stories/lily-lanterns.jpg`   | Safe LED paper lantern constellation and a child's drawn star map at blue hour        | 720 × 720  | 71,400 bytes |
+
+Exact unabridged generation prompts, tool mode, final project paths, and original local PNG paths are recorded in [STORY_IMAGE_PROMPTS.md](STORY_IMAGE_PROMPTS.md). Original PNGs remain in the built-in generation directory. The eight JPEGs total 635,491 bytes (about 621 KiB). The legacy Unsplash assets above are retained without modification for compatibility and their credits remain applicable only to those older files.
