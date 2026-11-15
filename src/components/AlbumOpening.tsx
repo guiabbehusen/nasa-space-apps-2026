@@ -161,8 +161,9 @@ export default function AlbumOpening({
     preference.addEventListener("change", reducedMotion);
     // Covers CSS animation cancellation, background-tab throttling and slow frames.
     // The backdrop is opaque before the normal reader replaces the shelf.
-    // Build the real reader at its final size while the cover is still opening.
-    const warmup = window.setTimeout(prepare, 780);
+    // The presentation already shows the opening spread. Initialize the engine
+    // after the busy fold/reveal (86%), while the cover gently settles in place.
+    const warmup = window.setTimeout(prepare, 1660);
     const fallback = window.setTimeout(finishAnimation, 2250);
     const safety = window.setTimeout(() => {
       prepare();
@@ -203,30 +204,36 @@ export default function AlbumOpening({
             finishAnimation();
         }}
       >
-        <div
-          className={`book-case book-case-${album.accent} opening-reader-case`}
-        >
-          <div className="book-ground-shadow" />
-          <BookVolume
-            portrait={destination.portrait}
-            firstPage={0}
-            pageCount={totalPages}
-          />
-          <div className="opening-spread">
-            {rightPage && (
-              <div className="album-leaf opf-page--right opening-stationary-leaf">
-                <AlbumLeaf
-                  page={rightPage}
-                  pageIndex={rightIndex}
-                  profileId={profileId}
-                  people={people}
-                  presentation
-                  navigation={{ showNext: rightIndex < totalPages - 1 }}
+        <div className="opening-base-bounds">
+          <div className="opening-base-window">
+            <div className="opening-base-carrier">
+              <div
+                className={`book-case book-case-${album.accent} opening-reader-case`}
+              >
+                <div className="book-ground-shadow" />
+                <BookVolume
+                  portrait={destination.portrait}
+                  firstPage={0}
+                  pageCount={totalPages}
                 />
+                <div className="opening-spread">
+                  {rightPage && (
+                    <div className="album-leaf opf-page--right opening-stationary-leaf">
+                      <AlbumLeaf
+                        page={rightPage}
+                        pageIndex={rightIndex}
+                        profileId={profileId}
+                        people={people}
+                        presentation
+                        navigation={{ showNext: rightIndex < totalPages - 1 }}
+                      />
+                    </div>
+                  )}
+                </div>
+                {!destination.portrait && <div className="book-binding" />}
               </div>
-            )}
+            </div>
           </div>
-          {!destination.portrait && <div className="book-binding" />}
         </div>
         <div className="opening-nameplate-anchor">
           <AlbumNameplate album={album} people={people} presentation />

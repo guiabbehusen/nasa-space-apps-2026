@@ -123,7 +123,13 @@ Optional `design` metadata extends version-one pages/drafts without changing exi
 
 ## Opening-to-reader handoff
 
-The earlier transition removed its overlay and mounted the page-turn engine in the same update. Synchronous engine layout, image decoding, and resize work therefore happened exactly at reveal. The reader now mounts at its final immersive dimensions 780 ms into the cover animation, after the backdrop is opaque. It stays mounted through the handoff; clearing the overlay does not recreate the book.
+The earlier transition removed its overlay and mounted the page-turn engine in the same update. An intermediate revision mounted the reader 780 ms into the cover animation, which still overlapped its most visible fold. The reader now mounts at its final immersive dimensions at 1660 ms, after the base reveal has settled and the cover is nearly stationary. Presentation pages already show the actual opening spread during the motion. The reader stays mounted through the handoff; clearing the overlay does not recreate the book. The lift and hardcover animation still last 1900 ms and page turns remain 1000 ms.
+
+Shelf focus, pointer intent, and direct opening prepare only the cover and first two visible photo sources. Repeated intent shares one asynchronous decode per source, with eight recent preparations retained; failures are nonblocking and can retry. The handwriting font is warmed after the shelf mounts. The readiness gate still waits for the real opening spread and fonts, with its existing deadline and two paint frames. There is no blanket lazy loading of later pages.
+
+Stable album/person/page arrays and composition callbacks let the memoized reader skip parent-only readiness and geometry updates. The shared scrapbook composition and decorative volume also avoid reconciling unchanged photo/sticker/sheet trees. Actual edits, profile changes, deliveries, turns, and resize updates still render. Shared and cover photos use asynchronous decoding.
+
+The opening base uses a fixed clipping window instead of animating a clip-path over its textured 3D sheets. A translating window and inverse-translating carrier keep the case in the same world position while exposing its left edge. Fixed outer bounds preserve shadow margins. This moves the reveal through compositor transforms while retaining its opacity timing, page depth, and final reader appearance.
 
 `AlbumBook` reports readiness after its first engine initialization, the initial visible spread’s image load/decode (including failures), and two animation frames. Image waiting has a 1.8-second ceiling, stale callbacks are cancelled, and empty albums also become ready. The animation’s completion and reader readiness jointly release a 160 ms opacity transition. Offscreen photos never gate opening. The hardcover no longer has a deliberately stationary final 160 ms segment.
 

@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -59,6 +60,7 @@ import {
 } from "@/lib/opening-geometry";
 import ScrapbookEditor from "@/components/ScrapbookEditor";
 import Bookshelf from "@/components/Bookshelf";
+import { preloadAlbumMedia } from "@/lib/album-preload";
 import AddAlbumForm, { type AlbumInput } from "@/components/AddAlbumForm";
 import CrewSupport from "@/components/CrewSupport";
 import "./bookshelf.css";
@@ -233,8 +235,14 @@ export default function Home() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const lastStored = useRef<string | null>(null);
-  const allAlbums = getAlbums(data);
-  const allPeople = getPeople(data);
+  const allAlbums = useMemo(
+    () => getAlbums({ customAlbums: data.customAlbums }),
+    [data.customAlbums],
+  );
+  const allPeople = useMemo(
+    () => getPeople({ customPeople: data.customPeople }),
+    [data.customPeople],
+  );
   const person = (id: string) => allPeople.find((item) => item.id === id)!;
   const album = allAlbums.find((a) => a.id === selected) ?? allAlbums[0];
   const openingAlbum = opening
@@ -250,17 +258,38 @@ export default function Home() {
   const notifications = getReplyNotifications(data, profile);
   const draftKey = `${profile}:${selected}`;
   const draft = data.drafts[draftKey] ?? emptyDraft;
-  const pagesForAlbum = (albumId: string) =>
-    data.pages
-      .filter(
-        (page) =>
-          page.albumId === albumId &&
-          (page.authorId === profile ||
-            page.status === "delivered" ||
-            page.status === "answered"),
-      )
-      .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
-  const visiblePages = pagesForAlbum(selected);
+  const pagesForAlbum = useCallback(
+    (albumId: string) =>
+      data.pages
+        .filter(
+          (page) =>
+            page.albumId === albumId &&
+            (page.authorId === profile ||
+              page.status === "delivered" ||
+              page.status === "answered"),
+        )
+        .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)),
+    [data.pages, profile],
+  );
+  const visiblePages = useMemo(
+    () => pagesForAlbum(selected),
+    [pagesForAlbum, selected],
+  );
+  const prepareAlbum = useCallback(
+    (albumId: string) => {
+      const targetAlbum = allAlbums.find((item) => item.id === albumId);
+      if (!targetAlbum) return;
+      preloadAlbumMedia(
+        [
+          targetAlbum.cover.replace(/\.svg$/, ".jpg"),
+          ...pagesForAlbum(albumId)
+            .slice(0, 2)
+            .map((page) => page.photo),
+        ].filter((source): source is string => typeof source === "string"),
+      );
+    },
+    [allAlbums, pagesForAlbum],
+  );
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [note, setNote] = useState("");
   const weekly = data.checkIns.find(
@@ -367,11 +396,11 @@ export default function Home() {
       setNote(weekly?.note ?? "");
     }
   }, [view, profile, weekly?.id]);
-  const navigate = (next: View) => {
+  const navigate = useCallback((next: View) => {
     setHighlight("");
     setView(next);
     window.scrollTo({ top: 0, behavior: "instant" });
-  };
+  }, []);
   const updateDraft = (changes: Partial<Draft>) =>
     setData((d) => ({
       ...d,
@@ -380,33 +409,37 @@ export default function Home() {
         [draftKey]: { ...(d.drafts[draftKey] ?? emptyDraft), ...changes },
       },
     }));
-  const openAlbum = (id: string, trigger?: HTMLElement) => {
-    if (openingLock.current) return;
-    const source = trigger?.querySelector<HTMLElement>(".album-book");
-    const bounds = source?.getBoundingClientRect();
-    if (
-      !pagesForAlbum(id).length ||
-      !bounds?.width ||
-      !bounds.height ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      setSelected(id);
-      navigate("story");
-      return;
-    }
-    openingLock.current = true;
-    setReaderReady(false);
-    setOpeningTarget(null);
-    setOpening({
-      albumId: id,
-      origin: {
-        left: bounds.left,
-        top: bounds.top,
-        width: bounds.width,
-        height: bounds.height,
-      },
-    });
-  };
+  const openAlbum = useCallback(
+    (id: string, trigger?: HTMLElement) => {
+      if (openingLock.current) return;
+      prepareAlbum(id);
+      const source = trigger?.querySelector<HTMLElement>(".album-book");
+      const bounds = source?.getBoundingClientRect();
+      if (
+        !pagesForAlbum(id).length ||
+        !bounds?.width ||
+        !bounds.height ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        setSelected(id);
+        navigate("story");
+        return;
+      }
+      openingLock.current = true;
+      setReaderReady(false);
+      setOpeningTarget(null);
+      setOpening({
+        albumId: id,
+        origin: {
+          left: bounds.left,
+          top: bounds.top,
+          width: bounds.width,
+          height: bounds.height,
+        },
+      });
+    },
+    [navigate, pagesForAlbum, prepareAlbum],
+  );
   const prepareOpening = useCallback(() => {
     if (!opening || !openingLock.current) return;
     setSelected(opening.albumId);
@@ -432,23 +465,30 @@ export default function Home() {
     setOpening(null);
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [opening]);
-  const compose = (id = selected, replyTo?: string) => {
-    setSelected(id);
-    if (replyTo)
-      setData((d) => ({
-        ...d,
-        drafts: {
-          ...d.drafts,
-          [`${profile}:${id}`]: {
-            ...(d.drafts[`${profile}:${id}`] ?? emptyDraft),
-            replyTo,
+  const compose = useCallback(
+    (id = selected, replyTo?: string) => {
+      setSelected(id);
+      if (replyTo)
+        setData((d) => ({
+          ...d,
+          drafts: {
+            ...d.drafts,
+            [`${profile}:${id}`]: {
+              ...(d.drafts[`${profile}:${id}`] ?? emptyDraft),
+              replyTo,
+            },
           },
-        },
-      }));
-    setPhotoError("");
-    navigate("compose");
-    setDialog(null);
-  };
+        }));
+      setPhotoError("");
+      navigate("compose");
+      setDialog(null);
+    },
+    [navigate, profile, selected],
+  );
+  const composeInAlbum = useCallback(
+    (replyTo?: string) => compose(selected, replyTo),
+    [compose, selected],
+  );
   const openReply = (page: Contribution) => {
     setSelected(page.albumId);
     setHighlight(page.id);
@@ -664,6 +704,7 @@ export default function Home() {
                     ),
                   }))}
                 onOpen={openAlbum}
+                onPrepareAlbum={prepareAlbum}
                 onAddAlbum={showNewAlbum}
                 headingRef={titleRef}
                 openingAlbumId={opening?.albumId}
@@ -711,7 +752,7 @@ export default function Home() {
                 profileId={profile}
                 initialPageId={highlight || undefined}
                 onReady={markReaderReady}
-                onCompose={(replyTo) => compose(selected, replyTo)}
+                onCompose={composeInAlbum}
               />
             </>
           )}

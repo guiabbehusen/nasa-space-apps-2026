@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import "./book-volume.css";
 
 type Props = {
@@ -18,7 +18,7 @@ const sheets = [
 ] as const;
 
 /** Physical paper beneath the live, untransformed page-turn surface. */
-export default function BookVolume({ portrait, firstPage, pageCount }: Props) {
+function BookVolume({ portrait, firstPage, pageCount }: Props) {
   const count = Number.isFinite(pageCount) ? Math.max(1, pageCount) : 1;
   const page = Number.isFinite(firstPage)
     ? Math.max(0, Math.min(count - 1, firstPage))
@@ -58,3 +58,5 @@ export default function BookVolume({ portrait, firstPage, pageCount }: Props) {
     </div>
   );
 }
+
+export default memo(BookVolume);

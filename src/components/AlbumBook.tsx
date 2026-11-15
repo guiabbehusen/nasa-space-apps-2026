@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  memo,
   useEffect,
   useRef,
   useState,
@@ -43,7 +44,7 @@ type Props = {
 };
 
 /** Every contribution is a physical leaf; the fold engine controls only its presentation. */
-export default function AlbumBook({
+function AlbumBook({
   pages,
   album,
   profileId,
@@ -389,3 +390,5 @@ export default function AlbumBook({
     </section>
   );
 }
+
+export default memo(AlbumBook);

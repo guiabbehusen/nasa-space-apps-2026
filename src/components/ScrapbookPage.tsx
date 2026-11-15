@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { memo, type CSSProperties, type ReactNode } from "react";
 import type { PageDesign, PageSticker } from "@/lib/model";
 import { StickerArt } from "./StickerArt";
 import "./scrapbook.css";
@@ -40,7 +40,7 @@ type Props = {
 };
 
 /** The editor and physical album use exactly the same page composition. */
-export default function ScrapbookPage({
+function ScrapbookPage({
   title,
   text,
   photo,
@@ -76,6 +76,7 @@ export default function ScrapbookPage({
                   `Photo accompanying “${title}”`
                 }
                 draggable={false}
+                decoding="async"
               />
               {voice === "earth" &&
                 ["tl", "tr", "bl", "br"].map((corner) => (
@@ -120,3 +121,5 @@ export default function ScrapbookPage({
     </div>
   );
 }
+
+export default memo(ScrapbookPage);

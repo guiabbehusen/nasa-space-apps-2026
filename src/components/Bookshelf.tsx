@@ -10,6 +10,7 @@ import {
 } from "react";
 import { Plus } from "lucide-react";
 import type { Album } from "@/lib/model";
+import { warmReaderFonts } from "@/lib/album-preload";
 import "./bookshelf-scene.css";
 
 export type BookshelfAlbum = {
@@ -44,6 +45,7 @@ export function ShelfCoverContents({
         <img
           src={album.cover.replace(".svg", ".jpg")}
           alt=""
+          decoding="async"
           draggable={false}
         />
         {(["tl", "tr", "bl", "br"] as const).map((corner) => (
@@ -72,6 +74,7 @@ type Props = {
   onAddAlbum: () => void;
   headingRef: RefObject<HTMLHeadingElement | null>;
   openingAlbumId?: string;
+  onPrepareAlbum?: (id: string) => void;
 };
 
 type ShelfGeometry = {
@@ -89,6 +92,7 @@ export default function Bookshelf({
   onAddAlbum,
   headingRef,
   openingAlbumId,
+  onPrepareAlbum,
 }: Props) {
   const rowsRef = useRef<HTMLDivElement>(null);
   const pointerType = useRef("");
@@ -116,6 +120,13 @@ export default function Bookshelf({
   };
   const activeId =
     previewId ?? (previewMode === "keyboard" ? focusId : hoverId);
+
+  useEffect(() => {
+    const preparation = window.setTimeout(() => {
+      void warmReaderFonts();
+    }, 150);
+    return () => window.clearTimeout(preparation);
+  }, []);
 
   useEffect(
     () => () => {
@@ -285,6 +296,7 @@ export default function Bookshelf({
                             } as CSSProperties
                           }
                           onPointerDown={(event) => {
+                            onPrepareAlbum?.(album.id);
                             clearHoverLeave();
                             pointerType.current = event.pointerType;
                             if (event.pointerType !== "mouse") {
@@ -294,6 +306,7 @@ export default function Bookshelf({
                           }}
                           onPointerEnter={(event) => {
                             if (event.pointerType === "mouse") {
+                              onPrepareAlbum?.(album.id);
                               clearHoverLeave();
                               setPreviewId(null);
                               setHoverId(album.id);
@@ -312,6 +325,7 @@ export default function Bookshelf({
                             }
                           }}
                           onFocus={(event) => {
+                            onPrepareAlbum?.(album.id);
                             setFocusId(album.id);
                             if (event.currentTarget.matches(":focus-visible")) {
                               clearHoverLeave();
