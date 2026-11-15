@@ -131,3 +131,22 @@ Constraints: all fictional; safe battery LEDs only, no flames, candles, fire, ja
 
 - Final project copy: `public/images/stories/lily-lanterns.jpg`
 - Original generated PNG: `C:\Users\User\.codex\generated_images\01a1dc8b-ee55-7131-b7f4-377db9de9be0\exec-6b7b0b47-a9f5-4ecf-a229-62059bcdc53b.png`
+
+
+## Alex's space meal — `alex-space-meal.jpg`
+
+Original AI-generated illustrative photograph, built-in `image_gen` tool, generate mode, `photorealistic-natural`, 15 November 2026. The subject is a fictional anonymous adult astronaut, not a real NASA crewmember. One independent generation call, without reference images. The JPEG is resized to 720 × 720 and compressed at quality 82 with Sharp, without content editing.
+
+```text
+Use case: photorealistic-natural
+Asset type: an original square family-scrapbook photograph for the fictional Still Here web application, paired with a partner's Earth dinner memory.
+Primary request: A warm candid memory of Alex, a completely fictional adult father and male astronaut with short dark wavy hair and light facial scruff, enjoying astronaut food inside a believable small spacecraft cabin. He wears a plain casual navy crew shirt, no spacesuit or helmet. He has a relaxed gentle smile and brings one ordinary small spoonful of food close to his mouth, one natural hand holding the spoon and the other steadying a rehydratable meal pouch secured near a small tray. Plausible functional spacecraft details and soft equipment shapes in the modest cabin, without copying any specific real crew or spacecraft photograph.
+Style/medium: believable candid family film photograph, natural human texture, subtle grain, affectionate and nostalgic, warm home-snapshot feeling in an unusual place, not a space movie still or promotional portrait.
+Composition/framing: one standalone full-bleed square photograph, medium close view at seated eye level, meal pouch, tray, face and natural hands clearly visible; no collage or inset images.
+Lighting/mood: soft gentle cabin and window light, warm highlights with calm blue-gray shadows, intimate everyday moment across the distance.
+Color palette: muted navy, blue-gray, cream equipment, soft warm amber skin highlights; avoid strong red and aggressive black contrast.
+Constraints: Alex is a new fictional anonymous adult, not based on or resembling any identifiable real astronaut, NASA employee or existing person's face. No NASA imagery or affiliation claims. Blank meal-pouch labels and plain clothing only. No readable text, letters, numbers, mission patches, national flags, logos, watermarks, decorative frames, tape, scrapbook border or UI; the interface adds framing. Human anatomy and spoon handling must be natural and physically plausible.
+```
+
+- Final project copy: `public/images/stories/alex-space-meal.jpg`
+- Original generated PNG: `C:\Users\User\.codex\generated_images\01a1dc8b-ee55-7131-b7f4-377db9de9be0\exec-84b006d9-37f1-4c24-abc9-39b6a067b827.png`

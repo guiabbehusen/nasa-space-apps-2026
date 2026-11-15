@@ -59,6 +59,34 @@ test("a valid saved snapshot round-trips with every page, draft, reflection and 
   assert.equal(restored.checkIns[0].note, "A quiet but good week.");
 });
 
+test("the new Alex meal photo reaches untouched saved replies without changing their history", () => {
+  const expected = saved();
+  const previous = structuredClone(expected);
+  delete previous.pages.find((page) => page.id === "sam-2")!.photo;
+  const restored = parse(previous);
+  assert.deepEqual(restored, expected);
+  assert.deepEqual(parse(restored), expected);
+});
+
+test("the new sample photo preserves personalized or deleted Alex replies", () => {
+  for (const change of ["text", "title", "design", "photo", "delete"] as const) {
+    const data = saved();
+    const reply = data.pages.find((page) => page.id === "sam-2")!;
+    delete reply.photo;
+    if (change === "text") reply.text = "Our own dinner story.";
+    if (change === "title") reply.title = "Dinner together";
+    if (change === "design") reply.design = design();
+    if (change === "photo") reply.photo = "data:image/jpeg;base64,/9j/2Q==";
+    if (change === "delete") {
+      data.pages = data.pages.filter((page) => page.id !== reply.id);
+      for (const page of data.pages) {
+        if (page.replyTo === reply.id) delete page.replyTo;
+      }
+    }
+    assert.deepEqual(parse(data), data, change);
+  }
+});
+
 test("scrapbook designs round-trip on both published pages and unfinished drafts", () => {
   const data = saved();
   data.pages[0].design = design();

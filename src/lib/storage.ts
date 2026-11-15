@@ -8,6 +8,7 @@ import {
   isLocalPhoto,
   upgradeDemoStories,
   upgradeClassicStories,
+  upgradeSamReplyPhoto,
   type Album,
   type AppData,
   type Contribution,
@@ -171,20 +172,22 @@ export function parseStoredData(raw: string): AppData {
     if (d.replyTo && !validReply(d.replyTo, albumId, authorId)) invalid();
     drafts[key] = d;
   }
-  return upgradeClassicStories(
-    upgradeDemoStories({
-      version: 1,
-      ...(v.customAlbums === undefined ? {} : { customAlbums }),
-      ...(v.customPeople === undefined ? {} : { customPeople }),
-      ...(v.demoStoriesVersion === undefined ? {} : { demoStoriesVersion: 1 }),
-      ...(v.classicStoriesVersion === undefined
-        ? {}
-        : { classicStoriesVersion: 1 }),
-      pages,
-      drafts,
-      checkIns,
-      readReplyIds,
-    }),
+  return upgradeSamReplyPhoto(
+    upgradeClassicStories(
+      upgradeDemoStories({
+        version: 1,
+        ...(v.customAlbums === undefined ? {} : { customAlbums }),
+        ...(v.customPeople === undefined ? {} : { customPeople }),
+        ...(v.demoStoriesVersion === undefined ? {} : { demoStoriesVersion: 1 }),
+        ...(v.classicStoriesVersion === undefined
+          ? {}
+          : { classicStoriesVersion: 1 }),
+        pages,
+        drafts,
+        checkIns,
+        readReplyIds,
+      }),
+    ),
   );
 }
 

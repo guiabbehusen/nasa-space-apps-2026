@@ -91,3 +91,8 @@ All final JPEGs are self-hosted at 720 × 720 pixels, resized and compressed at 
 | `public/images/stories/lily-lanterns.jpg`   | Safe LED paper lantern constellation and a child's drawn star map at blue hour        | 720 × 720  | 71,400 bytes |
 
 Exact unabridged generation prompts, tool mode, final project paths, and original local PNG paths are recorded in [STORY_IMAGE_PROMPTS.md](STORY_IMAGE_PROMPTS.md). Original PNGs remain in the built-in generation directory. The eight JPEGs total 635,491 bytes (about 621 KiB). The legacy Unsplash assets above are retained without modification for compatibility and their credits remain applicable only to those older files.
+
+
+## Generated Alex space-meal reply photograph
+
+The original illustrative photograph `public/images/stories/alex-space-meal.jpg` was generated on 15 November 2026 with the built-in `image_gen` tool in generate mode (`photorealistic-natural`). Alex is a fictional anonymous adult father and astronaut, shown eating from a meal pouch in a plausible small spacecraft cabin. This is not a NASA photograph, a record of a real mission, or a depiction of any actual crewmember. It carries no readable labels, mission patches, logos, framing, tape, or application UI. The self-hosted JPEG is 720 × 720 pixels, 54,618 bytes, resized and compressed at quality 82 with Sharp without content editing. Its exact prompt and original local PNG path are appended to [STORY_IMAGE_PROMPTS.md](STORY_IMAGE_PROMPTS.md).

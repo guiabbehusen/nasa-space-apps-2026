@@ -210,3 +210,9 @@ The pickup geometry was aligned to the deeper cover: a desktop opening targeted 
 - In two final Sam samples, the reader mounted around 1681–1723ms and became ready around 1792–1847ms. Neither sample recorded an interval above 32ms between 800ms and 1600ms. Total observed completion stayed approximately 2.20–2.23 seconds, including the observer's extra 100ms. Initial/settling frames still exceeded 32ms; this is a small diagnostic sample on one device, not a guarantee of zero jank or a general FPS benchmark.
 - Reviewed the full opening, repeated opening, and subsequent page turn. Skip animation and Escape both opened the real reader. At 390 × 844, normal opening reached the portrait book; book width was 335px and document scrollWidth 375px. The temporary viewport was reset. No browser warnings or errors were captured.
 - Animation durations, opaque folding pages, depth/shadows, reader readiness fallback, and contribution/storage semantics remain intact. The fixed clipping window replaces the animated base clip-path; final reader geometry is unchanged.
+
+## Alex's space-meal photograph — 15 November 2026
+
+- Added one original generated, self-hosted JPEG (720 × 720, 54,618 bytes) to Alex's first reply in Sam's album, “The chef is requesting cinnamon”. The existing Polaroid frame and tape render the photo; the image has a specific accessible description.
+- All 75 automated tests and the production build passed. Regression coverage verifies that previously saved, untouched demo replies receive the photo once while personalized/deleted replies, delivery history, drafts, reflections, and read markers remain intact.
+- Opened Sam's first spread in the local production preview. The new image loaded at its full 720px source size and appeared on Alex's right-hand page. Reviewed the complete spread; the story text, cover-opening sequence, and album layout remain unchanged.

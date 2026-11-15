@@ -235,7 +235,7 @@ export function isLocalPhoto(value: unknown): value is string {
       /^\/images\/(lily|sam|maya|june|gui|rosa|theo|blank-album)\.jpg$/.test(
         value,
       ) ||
-      /^\/images\/stories\/(sam-supper|sam-menu|maya-lighthouse|maya-capsule|june-cinema|june-film|lily-expedition|lily-lanterns)\.jpg$/.test(
+      /^\/images\/stories\/(sam-supper|sam-menu|alex-space-meal|maya-lighthouse|maya-capsule|june-cinema|june-film|lily-expedition|lily-lanterns)\.jpg$/.test(
         value,
       ))
   );
@@ -986,7 +986,11 @@ export function createClassicStoryPages(now: Date): Contribution[] {
       192,
       "The chef is requesting cinnamon",
       "Toast the bread, add orange slices, then a little cinnamon. That is my best impression of a chef working from a flight manual. Call it Sunrise on the Flight Deck. I drew an absurdly tiny restaurant logo in my notebook. Please save the cardboard sign. I want to eat beneath it when I'm home.",
-      { replyTo: "sam-1", design: design("star") },
+      {
+        replyTo: "sam-1",
+        photo: "/images/stories/alex-space-meal.jpg",
+        design: design("star"),
+      },
     ),
     seed(
       "lily-2",
@@ -1173,6 +1177,23 @@ const sameAuthoredContent = (page: Contribution, reference: Contribution) =>
   page.photo === reference.photo &&
   JSON.stringify(page.design) === JSON.stringify(reference.design) &&
   page.replyTo === reference.replyTo;
+
+/** Add the new sample photo only to the unchanged, previously photo-free reply. */
+export function upgradeSamReplyPhoto(data: AppData): AppData {
+  const prior = data.pages.find((page) => page.id === "sam-2");
+  if (!prior || prior.photo) return data;
+  const reference = createClassicStoryPages(
+    new Date("2026-11-15T12:00:00Z"),
+  ).find((page) => page.id === "sam-2")!;
+  if (!sameAuthoredContent(prior, { ...reference, photo: undefined }))
+    return data;
+  return {
+    ...data,
+    pages: data.pages.map((page) =>
+      page === prior ? { ...page, photo: reference.photo } : page,
+    ),
+  };
+}
 
 /** Refresh only complete, untouched original examples; personalized albums remain intact. */
 export function upgradeClassicStories(data: AppData): AppData {

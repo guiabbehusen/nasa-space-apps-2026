@@ -8,6 +8,8 @@ const storyPhotoDescriptions: Record<string, string> = {
     "A rooftop supper table set for two beneath warm string lights.",
   "/images/stories/sam-menu.jpg":
     "A homemade menu drawn in pictures beside an orange-and-cinnamon dessert.",
+  "/images/stories/alex-space-meal.jpg":
+    "Alex eats a meal from a food pouch aboard a spacecraft.",
   "/images/stories/maya-lighthouse.jpg":
     "A friend with a backpack follows a coastal path toward a lighthouse.",
   "/images/stories/maya-capsule.jpg":

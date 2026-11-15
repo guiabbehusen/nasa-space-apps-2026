@@ -555,7 +555,7 @@ test("the initial albums contain chronological pages, an incoming result, and no
   );
 });
 
-test("the four revised albums tell complete alternating stories, each with two distinct approved photographs", () => {
+test("the four revised albums tell complete alternating stories with distinct approved photographs", () => {
   const data = createInitialData(now);
   const expected = [
     [
@@ -564,6 +564,7 @@ test("the four revised albums tell complete alternating stories, each with two d
       "The midnight supper club",
       "/images/stories/sam-supper.jpg",
       "/images/stories/sam-menu.jpg",
+      "/images/stories/alex-space-meal.jpg",
     ],
     [
       "maya",
@@ -587,16 +588,16 @@ test("the four revised albums tell complete alternating stories, each with two d
       "/images/stories/lily-lanterns.jpg",
     ],
   ] as const;
-  for (const [albumId, count, title, firstPhoto, secondPhoto] of expected) {
+  for (const [albumId, count, title, ...photos] of expected) {
     const album = getAlbums(data).find((item) => item.id === albumId)!;
     assert.equal(album.title, title);
-    assert.equal(album.cover, firstPhoto);
+    assert.equal(album.cover, photos[0]);
     const pages = data.pages.filter((page) => page.albumId === albumId);
     assert.equal(pages.length, count);
     assert.equal(pages[0].authorId, albumId);
     assert.deepEqual(
       new Set(pages.flatMap((page) => (page.photo ? [page.photo] : []))),
-      new Set([firstPhoto, secondPhoto]),
+      new Set(photos),
     );
     assert.ok(pages.filter((page) => page.authorId === "alex").length >= 2);
     for (let index = 1; index < pages.length; index++) {
@@ -613,10 +614,11 @@ test("the four revised albums tell complete alternating stories, each with two d
   }
 });
 
-test("the photo allowlist accepts exactly the eight new story assets while retaining historical local photos", () => {
+test("the photo allowlist accepts the nine story assets while retaining historical local photos", () => {
   for (const name of [
     "sam-supper",
     "sam-menu",
+    "alex-space-meal",
     "maya-lighthouse",
     "maya-capsule",
     "june-cinema",
