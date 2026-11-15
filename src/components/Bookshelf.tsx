@@ -188,15 +188,16 @@ export default function Bookshelf({
             const expanded = row.some((entry) => entry.album.id === activeId);
             const spineWidth = geometry
               ? row.length === 1
-                ? geometry.baseSpineWidth
+                ? geometry.baseSpineWidth * 0.85
                 : Math.max(
                     1,
                     Math.min(
-                      155,
-                      (geometry.rowWidth -
+                      132,
+                      ((geometry.rowWidth -
                         geometry.gap * (row.length - 1) -
                         (expanded ? geometry.coverWidth : 0)) /
-                        (row.length - (expanded ? 0.55 : 0)),
+                        (row.length - (expanded ? 0.55 : 0))) *
+                        0.85,
                     ),
                   )
               : null;
