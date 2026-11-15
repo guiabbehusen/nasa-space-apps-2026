@@ -20,6 +20,7 @@ import {
   Cloud,
   Feather,
   Heart,
+  HandHeart,
   ImagePlus,
   Leaf,
   LockKeyhole,
@@ -59,12 +60,13 @@ import {
 import ScrapbookEditor from "@/components/ScrapbookEditor";
 import Bookshelf from "@/components/Bookshelf";
 import AddAlbumForm, { type AlbumInput } from "@/components/AddAlbumForm";
+import CrewSupport from "@/components/CrewSupport";
 import "./bookshelf.css";
 import "./physical-albums.css";
 import "./bookshelf-home.css";
 import "./replies-board.css";
 
-type View = "albums" | "story" | "compose" | "checkin" | "replies";
+type View = "albums" | "story" | "compose" | "checkin" | "replies" | "crew";
 type Dialog = "connection" | "help" | "about" | "new-album" | null;
 const emptyDraft: Draft = { title: "", text: "" };
 const shelfOrder = new Map(
@@ -593,6 +595,14 @@ export default function Home() {
               Your check-in
               <LockKeyhole className="nav-lock" size={13} />
             </button>
+            <button
+              className={view === "crew" ? "nav-item active" : "nav-item"}
+              aria-label="Support a Crewmate"
+              onClick={() => navigate("crew")}
+            >
+              <HandHeart size={19} />
+              Support a Crewmate
+            </button>
           </nav>
           <div className="sidebar-bottom">
             <button
@@ -632,32 +642,50 @@ export default function Home() {
             </div>
           )}
           {view === "albums" && (
-            <Bookshelf
-              albums={[...albums]
-                .sort(
-                  (left, right) =>
-                    (shelfOrder.get(left.id) ?? 4) -
-                    (shelfOrder.get(right.id) ?? 4),
-                )
-                .map((item) => ({
-                  album: item,
-                  companionName: person(item.personId).name,
-                  astronautName: astronaut.name,
-                  pageCount: pagesForAlbum(item.id).length,
-                  hasReply: notifications.some(
-                    (reply) => reply.albumId === item.id,
-                  ),
-                  hasDraft: !!(
-                    data.drafts[`${profile}:${item.id}`]?.text ||
-                    data.drafts[`${profile}:${item.id}`]?.photo
-                  ),
-                }))}
-              onOpen={openAlbum}
-              onAddAlbum={showNewAlbum}
-              headingRef={titleRef}
-              openingAlbumId={opening?.albumId}
-            />
+            <>
+              <Bookshelf
+                albums={[...albums]
+                  .sort(
+                    (left, right) =>
+                      (shelfOrder.get(left.id) ?? 4) -
+                      (shelfOrder.get(right.id) ?? 4),
+                  )
+                  .map((item) => ({
+                    album: item,
+                    companionName: person(item.personId).name,
+                    astronautName: astronaut.name,
+                    pageCount: pagesForAlbum(item.id).length,
+                    hasReply: notifications.some(
+                      (reply) => reply.albumId === item.id,
+                    ),
+                    hasDraft: !!(
+                      data.drafts[`${profile}:${item.id}`]?.text ||
+                      data.drafts[`${profile}:${item.id}`]?.photo
+                    ),
+                  }))}
+                onOpen={openAlbum}
+                onAddAlbum={showNewAlbum}
+                headingRef={titleRef}
+                openingAlbumId={opening?.albumId}
+              />
+              <div className="crew-home-cta">
+                <div>
+                  <HandHeart size={26} />
+                  <p>A steady presence for someone on your crew.</p>
+                </div>
+                <button
+                  className="primary-button"
+                  onClick={() => navigate("crew")}
+                >
+                  <HandHeart size={18} />
+                  Support a Crewmate
+                  <ArrowRight size={17} />
+                </button>
+              </div>
+            </>
           )}
+
+          {view === "crew" && <CrewSupport headingRef={titleRef} />}
 
           {view === "story" && (
             <>
