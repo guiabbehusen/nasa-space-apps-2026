@@ -29,6 +29,8 @@ type Props = {
   page: Contribution;
   pageIndex: number;
   profileId: string;
+  visibleInBook?: boolean;
+  onObjectChange?: (model?: Contribution["object3d"]) => void;
   people?: Person[];
   presentation?: boolean;
   onReply?: () => void;
@@ -50,6 +52,8 @@ export default function AlbumLeaf({
   profileId,
   people = PEOPLE,
   presentation = false,
+  visibleInBook,
+  onObjectChange,
   onReply,
   navigation,
 }: Props) {
@@ -91,6 +95,9 @@ export default function AlbumLeaf({
           title={page.title}
           text={page.text}
           photo={page.photo}
+          object3d={page.object3d}
+          visibleInBook={visibleInBook}
+          onObjectChange={onObjectChange}
           design={page.design}
           voice={voice}
         />

@@ -10,6 +10,7 @@ import "@fontsource/caveat/600.css";
 import "@fontsource/caveat/400.css";
 import "@fontsource/kalam/400.css";
 import "./globals.css";
+import "./objects.css";
 
 export const metadata: Metadata = {
   title: "Still Here — A little closer, from anywhere",

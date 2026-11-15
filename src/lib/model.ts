@@ -1,6 +1,7 @@
 import { clonePageDesign, isPageDesign, type PageDesign } from "./scrapbook";
 export type { PageDesign, PageSticker, StickerKind } from "./scrapbook";
 
+import { isKeepsake, type Keepsake } from "./keepsake";
 /** Local demonstration data and transport. No timer ever invents a human reply. */
 export type Person = {
   id: string;
@@ -29,6 +30,7 @@ export type Contribution = {
   text: string;
   photo?: string;
   design?: PageDesign;
+  object3d?: Keepsake;
   createdAt: string;
   status: ContributionStatus;
   sentAt?: string;
@@ -42,6 +44,7 @@ export type Draft = {
   text: string;
   photo?: string;
   design?: PageDesign;
+  object3d?: Keepsake;
   replyTo?: string;
 };
 export type CheckIn = {
@@ -463,7 +466,7 @@ export function advanceDelivery(
 
 export type NewContribution = Pick<
   Contribution,
-  "albumId" | "authorId" | "title" | "text" | "photo" | "replyTo" | "design"
+  "albumId" | "authorId" | "title" | "text" | "photo" | "replyTo" | "design" | "object3d"
 >;
 
 export function addContribution(
@@ -481,6 +484,8 @@ export function addContribution(
   }
   if (!input.text.trim() && !input.photo)
     throw new Error("Add a few words or a photo to your page.");
+  if (input.object3d !== undefined && (!input.photo || !isKeepsake(input.object3d)))
+    throw new Error("Choose a photo and approve its 3D preview before publishing.");
   if (input.design !== undefined && !isPageDesign(input.design))
     throw new Error(
       "This page design could not be saved. Please adjust its decorations.",

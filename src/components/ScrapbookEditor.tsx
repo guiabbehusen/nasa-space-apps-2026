@@ -274,7 +274,7 @@ export default function ScrapbookEditor({
                 type="button"
                 className="icon-button"
                 aria-label="Remove photo"
-                onClick={() => onChange({ photo: undefined })}
+                onClick={() => onChange({ photo: undefined, object3d: undefined })}
               >
                 <Trash2 size={16} />
               </button>
@@ -481,6 +481,8 @@ export default function ScrapbookEditor({
             title={draft.title || "A little moment"}
             text={draft.text || "Your words belong here."}
             photo={draft.photo}
+            object3d={draft.object3d}
+            onObjectChange={object3d => onChange({ object3d })}
             design={design}
           >
             {design.stickers.map((item, index) => (

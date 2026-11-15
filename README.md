@@ -15,6 +15,8 @@ npm run dev
 
 Open [http://127.0.0.1:3000](http://127.0.0.1:3000). No API key or environment file is required.
 
+Photo-to-3D downloads and verifies TensorFlow models on the first dev or production build. Later builds reuse the files in `public/ai/`. Photo recognition runs in the browser.
+
 ```sh
 npm run typecheck
 npm test

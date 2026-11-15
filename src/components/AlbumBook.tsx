@@ -39,6 +39,7 @@ type Props = {
   people?: Person[];
   initialPageId?: string;
   onCompose: (replyTo?: string) => void;
+  onObjectChange: (id: string, model?: Contribution["object3d"]) => void;
   onReady?: () => void;
 };
 
@@ -50,6 +51,7 @@ export default function AlbumBook({
   people = PEOPLE,
   initialPageId,
   onCompose,
+  onObjectChange,
   onReady,
 }: Props) {
   const authorName = (id: string) =>
@@ -307,6 +309,8 @@ export default function AlbumBook({
                   page={page}
                   pageIndex={pageIndex}
                   profileId={profileId}
+                  visibleInBook={pageIndex >= first && pageIndex <= last}
+                  onObjectChange={model => onObjectChange(page.id, model)}
                   people={people}
                   onReply={() => onCompose(page.id)}
                   navigation={{

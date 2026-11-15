@@ -6,3 +6,4 @@ out/
 !.env.example
 .openai/local/
 coverage/
+public/ai/

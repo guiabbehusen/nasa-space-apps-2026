@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "postinstall": "node scripts/patch-openpageflip.mjs",
-    "predev": "node scripts/patch-openpageflip.mjs",
+    "predev": "node scripts/patch-openpageflip.mjs && node scripts/prepare-vision.mjs",
     "dev": "next dev --hostname 127.0.0.1",
-    "prebuild": "node scripts/patch-openpageflip.mjs",
+    "prebuild": "node scripts/patch-openpageflip.mjs && node scripts/prepare-vision.mjs",
     "build": "next build",
     "start": "serve out -l 3000",
     "typecheck": "tsc --noEmit",
@@ -21,16 +21,20 @@
     "@fontsource/lora": "^5.2.0",
     "@openpageflip/core": "0.4.2",
     "@openpageflip/react": "^0.7.0",
+    "@tensorflow-models/coco-ssd": "2.2.3",
+    "@tensorflow/tfjs": "4.22.0",
     "lucide-react": "^0.577.0",
     "next": "16.4.6",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "three": "0.183.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "@types/three": "0.183.1",
     "serve": "^14.2.0",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.20.0",

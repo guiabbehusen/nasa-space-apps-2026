@@ -492,7 +492,7 @@ export default function Home() {
         ...d,
         drafts: {
           ...d.drafts,
-          [key]: { ...(d.drafts[key] ?? emptyDraft), photo },
+          [key]: { ...(d.drafts[key] ?? emptyDraft), photo, object3d: undefined },
         },
       }));
     } catch (e) {
@@ -684,6 +684,10 @@ export default function Home() {
                 initialPageId={highlight || undefined}
                 onReady={markReaderReady}
                 onCompose={(replyTo) => compose(selected, replyTo)}
+                onObjectChange={(id, object3d) => setData(current => ({
+                  ...current,
+                  pages: current.pages.map(p => p.id === id ? { ...p, object3d } : p),
+                }))}
               />
             </>
           )}
